@@ -1,0 +1,37 @@
+# 数据文件,绝对不上传
+data/raw/
+data/processed/
+*.csv
+*.jsonl
+*.jsonl.gz
+*.parquet
+
+# 模型文件
+models/*.pkl
+models/*.bin
+models/*.txt
+*.lgb
+*.pt
+*.pth
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+.python-version
+
+# 环境
+.env
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# 日志
+*.log
+logs/

@@ -35,3 +35,8 @@ venv/
 # 日志
 *.log
 logs/
+
+# 例外: 关键统计 JSON 允许上传(方便简历访客看数据规模)
+!data/processed/
+data/processed/*.csv
+!data/processed/day1_stats.json

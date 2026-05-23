@@ -1,0 +1,40 @@
+{
+  "dataset": "Amazon-Reviews-2023 Beauty_and_Personal_Care 5-core",
+  "split": "last_out",
+  "train": {
+    "n_interactions": 5165289,
+    "n_users": 729576,
+    "n_items": 207385,
+    "sparsity": 0.9999658613183764,
+    "rating_dist": {
+      "1_star_pct": 7.2,
+      "2_star_pct": 4.9,
+      "3_star_pct": 8.4,
+      "4_star_pct": 13.9,
+      "5_star_pct": 65.6,
+      "positive_ratio_4plus": 79.5
+    },
+    "user_activity": {
+      "median": 5,
+      "mean": 7.08,
+      "p90": 12,
+      "p99": 39,
+      "max": 2349
+    },
+    "item_popularity": {
+      "median": 10,
+      "mean": 24.91,
+      "p90": 45,
+      "p99": 273,
+      "max": 5986,
+      "top20pct_share": 70.5
+    },
+    "time_range": {
+      "start": "2000-12-20",
+      "end": "2023-09-12",
+      "span_years": 22.7,
+      "peak_year": 2020,
+      "peak_year_count": 730202
+    }
+  }
+}

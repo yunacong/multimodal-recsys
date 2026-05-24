@@ -1,0 +1,37 @@
+{
+  "date": "2026-05-24",
+  "day": "Day 3",
+  "model": "LightGBM",
+  "features": [
+    "user_interaction_count",
+    "user_avg_rating",
+    "user_last_timestamp",
+    "item_interaction_count",
+    "item_avg_rating",
+    "item_last_timestamp"
+  ],
+  "n_features": 6,
+  "n_train": 19722513,
+  "n_val": 4930629,
+  "num_boost_round": 100,
+  "metrics": {
+    "val_auc": 0.7645373366185545,
+    "val_logloss": 0.3875353178779603,
+    "val_ap": 0.37571311071583485,
+    "precision_at_10": 0.9,
+    "precision_at_50": 0.94,
+    "precision_at_100": 0.94
+  },
+  "feature_importance_gain": {
+    "user_interaction_count": 1490164.672302246,
+    "user_avg_rating": 47419.63018035889,
+    "user_last_timestamp": 3151453.752746582,
+    "item_interaction_count": 11271716.634735107,
+    "item_avg_rating": 462120.21770477295,
+    "item_last_timestamp": 4009709.090270996
+  },
+  "pos_pred_mean": 0.2619,
+  "neg_pred_mean": 0.1477,
+  "training_time_min": 2.73,
+  "notes": "Week 1 LightGBM Hello World baseline. Item popularity dominates. No overfitting."
+}

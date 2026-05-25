@@ -1,0 +1,91 @@
+{
+  "date": "2026-05-25",
+  "day": "Day 5 (项目部分)",
+  "version": "v2",
+  "features": [
+    "user_interaction_count",
+    "user_avg_rating",
+    "user_last_timestamp",
+    "item_interaction_count",
+    "item_avg_rating",
+    "item_last_timestamp",
+    "price",
+    "price_missing",
+    "title_length",
+    "n_categories",
+    "sub_category_id",
+    "brand_id",
+    "user_avg_price",
+    "user_price_diff",
+    "pop_x_activity"
+  ],
+  "n_features": 15,
+  "categorical_features": [
+    "sub_category_id",
+    "brand_id",
+    "price_missing"
+  ],
+  "n_train": 19722513,
+  "n_val": 4930629,
+  "best_iteration": 500,
+  "global_metrics": {
+    "val_auc": 0.80997698750464,
+    "val_logloss": 0.3582039687429667,
+    "train_auc": 0.8111048208767397
+  },
+  "user_level_metrics_v2": {
+    "precision@5": 0.20966765781145086,
+    "precision@10": 0.17868869158974987,
+    "precision@20": 0.16975359291560824
+  },
+  "user_level_recall_v2": {
+    "recall@5": 0.8941361678733338,
+    "recall@10": 0.9685990588283716,
+    "recall@20": 0.9915831148838911
+  },
+  "user_level_ndcg_v2": {
+    "ndcg@5": 0.7689702363839931,
+    "ndcg@10": 0.798979524294385,
+    "ndcg@20": 0.8077738769457838
+  },
+  "feature_importance_top5": [
+    {
+      "feature": "item_interaction_count",
+      "gain": 11683826.031261444,
+      "split": 1304
+    },
+    {
+      "feature": "item_last_timestamp",
+      "gain": 4466016.1147937775,
+      "split": 1889
+    },
+    {
+      "feature": "user_last_timestamp",
+      "gain": 2736802.069694519,
+      "split": 2125
+    },
+    {
+      "feature": "user_price_diff",
+      "gain": 2124545.0246887207,
+      "split": 814
+    },
+    {
+      "feature": "user_avg_price",
+      "gain": 1870744.469133377,
+      "split": 1242
+    }
+  ],
+  "comparison_with_v1": {
+    "auc_delta": 0.0362,
+    "ndcg10_delta": 0.0312,
+    "precision10_delta": 0.0011,
+    "recall10_delta": 0.0036
+  },
+  "training_time_min": 14.1,
+  "key_findings": [
+    "NDCG@10 涨 0.031 (排序质量提升), Precision@10 几乎不变 (受样本数限制)",
+    "brand_id split 数 3503 全场第一, 验证 LightGBM categorical 处理强大",
+    "新特征 5 个挤进 Top 8, user_price_diff 排第 4",
+    "AUC 提升验证 Day 4 假设: 加特征 > 加 boost rounds (ROI 高 4 倍)"
+  ]
+}

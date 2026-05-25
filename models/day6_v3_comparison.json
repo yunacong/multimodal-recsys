@@ -1,0 +1,96 @@
+{
+  "date": "2026-05-25",
+  "day": "Day 6",
+  "experiment_type": "BERT text embedding comparison",
+  "models": {
+    "v0_baseline": {
+      "features": 6,
+      "val_auc": 0.7645,
+      "val_logloss": 0.3875
+    },
+    "v1_tuned": {
+      "features": 6,
+      "val_auc": 0.7738,
+      "val_logloss": 0.381
+    },
+    "v2_meta_cross": {
+      "features": 15,
+      "val_auc": 0.81,
+      "val_logloss": 0.3582
+    },
+    "v3_minilm": {
+      "features": 16,
+      "val_auc": 0.8116086601770989,
+      "val_logloss": 0.35713544800526653,
+      "extra_feature": "text_cluster_id (MiniLM-L6 384d -> KMeans 50)"
+    },
+    "v3_mpnet": {
+      "features": 16,
+      "val_auc": 0.8121589682526017,
+      "val_logloss": 0.35670470892935524,
+      "extra_feature": "text_cluster_id_mpnet (mpnet-base 768d -> KMeans 50)"
+    }
+  },
+  "user_level_metrics_v3_minilm": {
+    "precision@5": 0.20983851183750396,
+    "recall@5": 0.8947037731281402,
+    "ndcg@5": 0.7702497165819708,
+    "precision@10": 0.17876521696444425,
+    "recall@10": 0.968832087819942,
+    "ndcg@10": 0.8001495050602848,
+    "precision@20": 0.16978783550822477,
+    "recall@20": 0.9916836545353738,
+    "ndcg@20": 0.8088983750647177
+  },
+  "user_level_metrics_v3_mpnet": {
+    "precision@5": 0.20989278311636786,
+    "recall@5": 0.8949035248785091,
+    "ndcg@5": 0.7707221399403325,
+    "precision@10": 0.17881288380196494,
+    "recall@10": 0.9690029599098374,
+    "ndcg@10": 0.8006276804616913,
+    "precision@20": 0.16979041985483734,
+    "recall@20": 0.991695364250914,
+    "ndcg@20": 0.8093062424164457
+  },
+  "feature_importance_v3_mpnet_top5": [
+    {
+      "feature": "item_interaction_count",
+      "gain": 11277165.783269882,
+      "split": 1139
+    },
+    {
+      "feature": "item_last_timestamp",
+      "gain": 4027080.3697166443,
+      "split": 1542
+    },
+    {
+      "feature": "user_last_timestamp",
+      "gain": 3100337.4354667664,
+      "split": 1981
+    },
+    {
+      "feature": "user_price_diff",
+      "gain": 2099781.367462158,
+      "split": 784
+    },
+    {
+      "feature": "price",
+      "gain": 1786235.448375702,
+      "split": 686
+    }
+  ],
+  "key_findings": {
+    "finding_1": "mpnet 比 MiniLM AUC 高 0.0006, 但工程成本 5x (编码 2.7x, 模型 5x)",
+    "finding_2": "v3 比 v2 只涨 0.0022, 远低于 v2 比 v1 涨 0.036",
+    "finding_3": "信号冗余假设: sub_category_id 已捕捉主要语义,BERT cluster 增量有限",
+    "finding_4": "特征工程边际收益曲线: +0.036 (v2) → +0.002 (v3)",
+    "production_decision": "MiniLM 性价比胜出, 0.0006 AUC 不值 5x 工程成本"
+  },
+  "next_steps": [
+    "考虑用户行为序列特征 (用户历史交互的 BERT 平均)",
+    "尝试 200 个 cluster (更细粒度)",
+    "加图片 CLIP embedding (Day 7)",
+    "考虑深度模型 DIN/DeepFM"
+  ]
+}

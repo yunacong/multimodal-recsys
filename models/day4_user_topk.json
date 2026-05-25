@@ -1,0 +1,25 @@
+{
+  "val_n_users": 696501,
+  "val_n_samples": 4930629,
+  "model_used": "exp1_boost500 (val AUC 0.7738)",
+  "user_level_metrics": {
+    "precision@5": 0.20531791531287583,
+    "precision@10": 0.17758302196400633,
+    "precision@20": 0.16939515839792627
+  },
+  "user_level_recall": {
+    "recall@5": 0.8799673539987043,
+    "recall@10": 0.9649718268433913,
+    "recall@20": 0.9906257632669131
+  },
+  "user_level_ndcg": {
+    "ndcg@5": 0.733284609216616,
+    "ndcg@10": 0.7677692112512968,
+    "ndcg@20": 0.7776559436499971
+  },
+  "global_metrics_day3": {
+    "precision@10": 0.9,
+    "precision@50": 0.94
+  },
+  "note": "User-level metrics are the industry standard for recommender systems."
+}

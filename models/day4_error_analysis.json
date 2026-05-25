@@ -1,0 +1,104 @@
+{
+  "analysis_a_user_buckets": [
+    {
+      "activity_bucket": "1.极冷启动(≤3次)",
+      "user_count": 201362,
+      "avg_interactions": 3.0,
+      "precision_at_10": 0.166,
+      "recall_at_10": 1.0,
+      "ndcg_at_10": 0.8494
+    },
+    {
+      "activity_bucket": "2.冷启动(4-5次)",
+      "user_count": 220047,
+      "avg_interactions": 4.4015,
+      "precision_at_10": 0.1666,
+      "recall_at_10": 0.9999,
+      "ndcg_at_10": 0.8115
+    },
+    {
+      "activity_bucket": "3.低活跃(6-10次)",
+      "user_count": 181303,
+      "avg_interactions": 7.429,
+      "precision_at_10": 0.1719,
+      "recall_at_10": 0.9929,
+      "ndcg_at_10": 0.7578
+    },
+    {
+      "activity_bucket": "4.中活跃(11-30次)",
+      "user_count": 82404,
+      "avg_interactions": 15.7296,
+      "precision_at_10": 0.2225,
+      "recall_at_10": 0.8946,
+      "ndcg_at_10": 0.6621
+    },
+    {
+      "activity_bucket": "5.高活跃(>30次)",
+      "user_count": 11385,
+      "avg_interactions": 72.8177,
+      "precision_at_10": 0.3598,
+      "recall_at_10": 0.4662,
+      "ndcg_at_10": 0.4735
+    }
+  ],
+  "analysis_b_item_hotness_auc": [
+    {
+      "bucket": "1.超长尾(≤5次)",
+      "n_samples": 608842,
+      "n_pos": 31676,
+      "pos_rate": 0.052,
+      "auc": 0.7748,
+      "avg_pred": 0.0525
+    },
+    {
+      "bucket": "2.长尾(6-20次)",
+      "n_samples": 1872710,
+      "n_pos": 187811,
+      "pos_rate": 0.1003,
+      "auc": 0.7621,
+      "avg_pred": 0.1
+    },
+    {
+      "bucket": "3.中等(21-100次)",
+      "n_samples": 1386007,
+      "n_pos": 258010,
+      "pos_rate": 0.1862,
+      "auc": 0.6862,
+      "avg_pred": 0.186
+    },
+    {
+      "bucket": "4.热门(101-500次)",
+      "n_samples": 770582,
+      "n_pos": 226061,
+      "pos_rate": 0.2934,
+      "auc": 0.6412,
+      "avg_pred": 0.294
+    },
+    {
+      "bucket": "5.爆款(>500次)",
+      "n_samples": 292488,
+      "n_pos": 118213,
+      "pos_rate": 0.4042,
+      "auc": 0.6436,
+      "avg_pred": 0.4046
+    }
+  ],
+  "analysis_c_error_types": {
+    "false_positives_count_strict": 27,
+    "false_negatives_count_strict": 88479,
+    "false_positives_count_loose": 700,
+    "false_negatives_count_loose": 261742
+  },
+  "key_findings": {
+    "finding_1_user_paradox": "Cold-start users have HIGHER NDCG@10 (0.85) than power users (0.47) due to sample size effect. NDCG is sample-size sensitive.",
+    "finding_2_item_paradox": "Long-tail items have HIGHER AUC (0.77) than blockbusters (0.64) due to class imbalance. Long-tail = easy binary classification.",
+    "finding_3_real_target": "Power users × Blockbusters intersection is the real weakness. Low % of users (1.6%) but high % of positive samples (40%)."
+  },
+  "next_step_recommendations_v2": [
+    "聚焦优化 高活跃用户 × 爆款商品 交叉场景",
+    "为高活跃用户加细粒度特征: 品类偏好序列, 价格区间, 品牌偏好",
+    "考虑分群训练: 高活跃用户单独训一个模型",
+    "加时间衰减特征: 最近 30 天权重高于历史",
+    "Day 5 多模态: 给爆款商品加文本/图像 embedding 增强区分度"
+  ]
+}

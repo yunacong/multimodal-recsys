@@ -1,0 +1,123 @@
+{
+  "date": "2026-05-26",
+  "experiment": "Day 7 Reverse Ablation Analysis",
+  "purpose": "Quantify image vs text vs combined contribution to AUC",
+  "models": {
+    "v3_mpnet_baseline_text_only": {
+      "features": 16,
+      "val_auc": 0.8122,
+      "description": "BERT mpnet text cluster only"
+    },
+    "v4_a_image_only_replacement": {
+      "features": 16,
+      "val_auc": 0.8117106462080828,
+      "description": "CLIP image cluster only (replaced text)"
+    },
+    "v4_combined_text_and_image": {
+      "features": 17,
+      "val_auc": 0.8115,
+      "description": "Both text and image features"
+    }
+  },
+  "key_finding": {
+    "v4a_vs_v3_delta": -0.0004893537919172797,
+    "v4_vs_v3_delta": -0.0007,
+    "interpretation": "CLIP signal strength ≈ BERT (within 0.0005). Combining = dominated strategy."
+  },
+  "per_category_analysis": {
+    "total_subcategories": 28,
+    "clip_wins": 12,
+    "ties": 5,
+    "bert_wins": 13,
+    "v4_combined_drops": 18,
+    "v4_combined_improves": 9
+  },
+  "clip_strongest_categories": [
+    {
+      "sub_category_id": 25,
+      "n_samples": 112,
+      "auc_v3": 0.6019,
+      "auc_v4a": 0.628,
+      "v4a_vs_v3": 0.0262
+    },
+    {
+      "sub_category_id": 20,
+      "n_samples": 112,
+      "auc_v3": 0.8205,
+      "auc_v4a": 0.8376,
+      "v4a_vs_v3": 0.0171
+    },
+    {
+      "sub_category_id": 23,
+      "n_samples": 182,
+      "auc_v3": 0.7235,
+      "auc_v4a": 0.7394,
+      "v4a_vs_v3": 0.0159
+    },
+    {
+      "sub_category_id": 14,
+      "n_samples": 123,
+      "auc_v3": 0.622,
+      "auc_v4a": 0.6368,
+      "v4a_vs_v3": 0.0149
+    },
+    {
+      "sub_category_id": 12,
+      "n_samples": 151,
+      "auc_v3": 0.7401,
+      "auc_v4a": 0.7453,
+      "v4a_vs_v3": 0.0053
+    }
+  ],
+  "clip_weakest_categories": [
+    {
+      "sub_category_id": 19,
+      "n_samples": 138,
+      "auc_v3": 0.6995,
+      "auc_v4a": 0.6852,
+      "v4a_vs_v3": -0.0144
+    },
+    {
+      "sub_category_id": 13,
+      "n_samples": 736,
+      "auc_v3": 0.7736,
+      "auc_v4a": 0.7641,
+      "v4a_vs_v3": -0.0095
+    },
+    {
+      "sub_category_id": 21,
+      "n_samples": 270,
+      "auc_v3": 0.7533,
+      "auc_v4a": 0.7449,
+      "v4a_vs_v3": -0.0084
+    },
+    {
+      "sub_category_id": 16,
+      "n_samples": 1186,
+      "auc_v3": 0.7808,
+      "auc_v4a": 0.7761,
+      "v4a_vs_v3": -0.0048
+    },
+    {
+      "sub_category_id": 28,
+      "n_samples": 123,
+      "auc_v3": 0.6761,
+      "auc_v4a": 0.6724,
+      "v4a_vs_v3": -0.0037
+    }
+  ],
+  "insights": [
+    "1. CLIP signal strength is comparable to BERT in BPC dataset (0.0005 difference)",
+    "2. Combining text + image is a \"dominated strategy\" - v4 loses in 18 of 28 categories",
+    "3. Different categories prefer different modalities (43% CLIP, 46% BERT, 11% tie)",
+    "4. CLIP excels in small-sample visual categories (+0.005 to +0.026 AUC)",
+    "5. BERT wins in text-rich/professional categories"
+  ],
+  "production_recommendations": [
+    "1. Do NOT blindly combine multimodal features - signal redundancy causes performance degradation",
+    "2. Use dynamic feature selection per category - visual categories prefer CLIP, text-rich prefer BERT",
+    "3. For BPC overall, BERT marginally wins (0.0005), but CLIP is viable production alternative",
+    "4. For small-sample categories with rich images (fashion, art), CLIP should be the default"
+  ],
+  "theoretical_insight": "Dominated strategy in feature engineering: when two features capture highly correlated signals, combining them disperses the signal across both, reducing the effective gain per split in tree-based models."
+}

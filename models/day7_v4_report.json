@@ -1,0 +1,72 @@
+{
+  "date": "2026-05-26",
+  "day": "Day 7",
+  "experiment_type": "CLIP image embedding multimodal",
+  "result": "NEGATIVE - image_cluster led to AUC degradation",
+  "models": {
+    "v3_mpnet_baseline": {
+      "features": 16,
+      "val_auc": 0.8122
+    },
+    "v4_with_image": {
+      "features": 17,
+      "val_auc": 0.8115128326026594
+    },
+    "auc_delta": -0.0006871673973406489
+  },
+  "feature_importance_v4_top5": [
+    {
+      "feature": "item_interaction_count",
+      "gain": 11384325.891471863,
+      "split": 1112
+    },
+    {
+      "feature": "item_last_timestamp",
+      "gain": 3845704.954509735,
+      "split": 1513
+    },
+    {
+      "feature": "user_last_timestamp",
+      "gain": 2915800.611841202,
+      "split": 1895
+    },
+    {
+      "feature": "user_price_diff",
+      "gain": 2043043.1995105743,
+      "split": 712
+    },
+    {
+      "feature": "user_avg_price",
+      "gain": 1796400.7137298584,
+      "split": 1187
+    }
+  ],
+  "image_cluster_diagnosis": {
+    "rank": 12,
+    "gain": 418303.9076194763,
+    "gain_vs_text": "50% of text_cluster gain (832K)"
+  },
+  "text_cluster_impact_after_image": {
+    "v3_gain": 950432,
+    "v4_gain": 832001.6867618561,
+    "change": "-12%, signal dispersed across two cluster features"
+  },
+  "key_findings": {
+    "1_signal_redundancy": "CLIP image signal mostly covered by sub_category + text_cluster",
+    "2_feature_interference": "Adding redundant feature dispersed text_cluster signal by 12%",
+    "3_mild_overfitting": "train-val gap expanded from -0.0005 to -0.0012",
+    "4_production_decision": "Do NOT use CLIP image cluster in production - net negative"
+  },
+  "engineering_metrics": {
+    "images_downloaded": 207207,
+    "download_success_rate": "99.91%",
+    "clip_extract_time_min": 5.6,
+    "clip_throughput_img_per_sec": 619,
+    "gpu_cost_yuan": "~10-12"
+  },
+  "next_steps": [
+    "Day 8: Try alternative image strategy (CLIP text-image cosine instead of cluster)",
+    "Day 8: Or skip image, focus on user behavior sequence (DIN-style)",
+    "Day 9: Resume model architecture exploration (DeepFM/DIN)"
+  ]
+}

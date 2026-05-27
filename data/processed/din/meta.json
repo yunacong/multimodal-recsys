@@ -1,0 +1,23 @@
+{
+  "split_strategy": "last_out",
+  "seq_len": 20,
+  "neg_ratio": 5,
+  "pos_threshold": 4,
+  "n_items": 207385,
+  "n_users": 729576,
+  "n_train_orig": 3706137,
+  "n_val_orig": 729576,
+  "n_test_orig": 729576,
+  "n_train_din": 18520342,
+  "n_val_din": 3605806,
+  "n_test_din": 3583426,
+  "train_pos_ratio": 0.15997766131964516,
+  "val_pos_ratio": 0.1595332638527974,
+  "test_pos_ratio": 0.15928053209414678,
+  "val_test_neg_ratio": 5,
+  "enhanced": true,
+  "n_sub_cats": 32,
+  "n_brands": 502,
+  "price_log_min": 0.00995033048093319,
+  "price_log_max": 8.13123607635498
+}

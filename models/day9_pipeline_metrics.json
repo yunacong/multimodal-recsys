@@ -1,0 +1,10 @@
+{
+  "n_test": 500,
+  "avg_latency_ms": 9.083203315734863,
+  "p50_latency_ms": 8.608102798461914,
+  "p95_latency_ms": 9.485006332397461,
+  "p99_latency_ms": 13.535594940185545,
+  "recall_at_10_after_rank": 0.004290909090909091,
+  "recall_at_50_after_rank": 0.033165151515151516,
+  "recall_at_200_recall_only": 0.05200990675990676
+}

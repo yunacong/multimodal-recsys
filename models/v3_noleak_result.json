@@ -1,0 +1,17 @@
+{
+  "model": "lightgbm_v3_mpnet_noleak",
+  "description": "v3-mpnet 重训，用户特征修复数据泄露（只用 cutoff 前交互）",
+  "best_iteration": 33,
+  "val_auc": 0.609177,
+  "ndcg_at_10": 0.462904,
+  "val_logloss": 0.443717,
+  "cutoff": 1665508481114,
+  "cutoff_date": "2022-10-11 17:14:41.114000",
+  "cold_start_users": 17231,
+  "warm_start_users": 50093,
+  "cold_start_fill": {
+    "user_interaction_count": 6,
+    "user_avg_rating": 4.2869,
+    "user_avg_price": 19.835
+  }
+}

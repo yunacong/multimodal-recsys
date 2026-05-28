@@ -2,6 +2,9 @@
 
 > 工业级端到端推荐 pipeline · 基于 Amazon Reviews 2023 BPC 数据集 (5.16M 交互)
 > Two-Tower 双塔召回 + LightGBM / DeepFM 排序 · FastAPI + Redis + Docker 部署
+>
+> **LightGBM v3-mpnet 无泄露 Val AUC 0.609**（冷启动场景）·
+> 诊断并修复时序泄露（`user_last_timestamp` 编码 train/val 分割边界，虚假增益 +0.20 AUC）
 
 [![Live Demo](https://img.shields.io/badge/🤗_Live_Demo-HuggingFace_Spaces-orange)](https://huggingface.co/spaces/yuancong/multimodal-recsys)
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
@@ -22,24 +25,29 @@
 ```
 
 - **数据规模**: 5.16M 交互, 729K 用户, 207K 商品 (Amazon Reviews 2023 美妆品类)
-- **最佳模型**: DeepFM, Val AUC **0.8145** (击败 LightGBM v3)
-- **架构**: Two-Tower 双塔召回 + GBDT/DeepFM 排序两阶段
+- **诚实 AUC**: LightGBM v3-mpnet **0.609**（无泄露·冷启动场景）；泄露修复前虚报 0.8122（+0.20 虚假增益）
+- **架构**: Two-Tower 双塔召回 + LightGBM 精排两阶段
 - **部署**: FastAPI + Redis 缓存 + Docker Compose + HuggingFace Spaces
 
 ---
 
 ## 🏆 核心亮点
 
-### 1. 9 个模型迭代对比
+### 1. 模型迭代对比
 
-| 模型 | 特征 | Val AUC | 说明 |
-|------|------|---------|------|
-| LightGBM v0 | 6 | 0.7645 | baseline |
-| LightGBM v2 | 15 | 0.8100 | meta + cross features |
-| LightGBM v3-mpnet | 16 | 0.8122 | + BERT 文本 embedding |
-| **DeepFM** ⭐ | 16 | **0.8145** | **新 SOTA, 击败树模型** |
-| Two-Tower | - | Recall@200 0.052 | 召回模型 |
-| Minimal DIN | item_id | 0.6827 | 序列模型 (反向发现) |
+| 模型 | 特征数 | Val AUC | 泄露状态 | 说明 |
+|------|:------:|:-------:|:--------:|------|
+| LightGBM v0 | 6 | 0.7645 | ⚠️ 含时序泄露 | baseline |
+| LightGBM v2 | 15 | 0.8100 | ⚠️ 含时序泄露 | meta + cross features |
+| LightGBM v3-mpnet | 16 | 0.8122 | ⚠️ 含时序泄露 | + MPNet 文本聚类 |
+| **LightGBM v3-mpnet** ✅ | 16 | **0.609** | **✅ 无泄露 (冷启动)** | **简历最终数字** |
+| DeepFM | 16 | 0.8145 | ⚠️ 含时序泄露 | FM 二阶 + Deep |
+| Two-Tower | — | Recall@200 0.052 | — | 召回模型 |
+| Minimal DIN | item_id | 0.6827 | ⚠️ 含时序泄露 | 序列模型（反向发现）|
+
+> ⚠️ **含时序泄露**：`user_last_timestamp` 在原始切分中隐式编码了 train/val 归属（val 用户该值 > cutoff），
+> 且用户特征（`user_avg_price` 等）使用了全量时序数据计算。
+> 详细诊断与修复见 [`reports/ablation_analysis.md`](reports/ablation_analysis.md)。
 
 ### 2. 多模态特征工程
 - **文本**: BERT (MiniLM / mpnet) 对商品标题做语义聚类

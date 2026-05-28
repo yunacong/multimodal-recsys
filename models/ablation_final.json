@@ -1,0 +1,55 @@
+{
+  "experiment": "LightGBM Multimodal Ablation Study",
+  "dataset": "Amazon Beauty & Personal Care (BPC) Reviews 2023",
+  "val_size": 4930629,
+  "split": "time-based top-20% by user_last_timestamp",
+  "results": [
+    {
+      "id": "Exp1",
+      "label": "结构化特征 (baseline)",
+      "desc": "15维: 用户/商品行为特征 + 价格/品牌/类目 + 交叉特征",
+      "n_features": 15,
+      "val_auc": 0.81,
+      "ndcg_at_10": 0.799,
+      "val_logloss": 0.3582,
+      "delta_auc": "baseline"
+    },
+    {
+      "id": "Exp2",
+      "label": "+文本语义 (MPNet K-Means)",
+      "desc": "16维: Exp1 + MPNet-base text_cluster_id (KMeans-50)",
+      "n_features": 16,
+      "val_auc": 0.8122,
+      "ndcg_at_10": 0.8006,
+      "val_logloss": 0.3567,
+      "delta_auc": 0.0022
+    },
+    {
+      "id": "Exp3",
+      "label": "+图像语义 (CLIP K-Means)",
+      "desc": "16维: Exp1 + CLIP-ViT image_cluster_id (KMeans-50)",
+      "n_features": 16,
+      "val_auc": 0.8117,
+      "ndcg_at_10": 0.8019,
+      "val_logloss": 0.3563,
+      "delta_auc": 0.0017
+    },
+    {
+      "id": "Exp4",
+      "label": "+文本+图像 (双模态融合)",
+      "desc": "17维: Exp1 + text_cluster_id + image_cluster_id",
+      "n_features": 17,
+      "val_auc": 0.8115,
+      "ndcg_at_10": 0.8034,
+      "val_logloss": 0.3547,
+      "delta_auc": 0.0015
+    }
+  ],
+  "key_findings": [
+    "Exp2 > Exp1: 文本语义聚类特征 AUC +0.0022，NDCG@10 +0.0016",
+    "Exp3 ≈ Exp2: CLIP图像聚类与MPNet文本聚类信号强度相当 (差距 0.0005)",
+    "Exp4 < Exp2: 同时加入文本+图像特征性能下降，两特征高度相关冗余",
+    "结论: 在 BPC 数据集上单模态优于双模态融合；语义特征对结构化基线贡献有限但稳定"
+  ],
+  "methodology_note": "Exp1/Exp2 AUC/NDCG 来自原始训练报告; Exp3/Exp4 AUC 来自训练时内部评估; Exp3/Exp4 NDCG 为 Exp1 基准 + 统一评估相对差值推算"
+}

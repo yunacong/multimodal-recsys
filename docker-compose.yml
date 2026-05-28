@@ -1,0 +1,25 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: recsys-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: recsys-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - PROJECT_ROOT=/app
+    volumes:
+      # 挂载模型 + 数据 (只读)
+      - ./models:/app/models:ro
+      - ./data/processed:/app/data/processed:ro
+    restart: unless-stopped

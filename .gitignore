@@ -42,3 +42,4 @@ data/processed/*.csv
 !data/processed/day1_stats.json
 anaconda_projects/
 
+dump.rdb

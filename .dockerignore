@@ -1,0 +1,13 @@
+data/raw/
+data/processed/
+models/
+notebooks/
+reports/
+src/
+*.log
+__pycache__/
+.git/
+.venv/
+*.npz
+*.parquet
+*.csv

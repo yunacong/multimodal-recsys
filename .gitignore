@@ -43,3 +43,12 @@ data/processed/*.csv
 anaconda_projects/
 
 dump.rdb
+
+# 二进制模型/数据文件
+*.npy
+*.npz
+*.rdb
+
+# 部署目录 (含大型模型文件，不进主仓库)
+hf_upload/
+hf_space/

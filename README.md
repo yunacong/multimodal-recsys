@@ -1,10 +1,10 @@
 # 🛍️ 多模态商品推荐系统 (Multimodal Recommender System)
 
 > 工业级端到端推荐 pipeline · 基于 Amazon Reviews 2023 BPC 数据集 (5.16M 交互)
-> Two-Tower 双塔召回 + LightGBM / DeepFM 排序 · FastAPI + Redis + Docker 部署
+> Two-Tower 双塔召回 + LightGBM 排序 · FastAPI + Redis + Docker 部署
 >
-> **LightGBM v3-mpnet 无泄露 Val AUC 0.609**（冷启动场景）·
-> 诊断并修复时序泄露（`user_last_timestamp` 编码 train/val 分割边界，虚假增益 +0.20 AUC）
+> **核心亮点**: 多模态消融实验对比 4 组特征组合 · 诊断并修复时序数据泄露
+> (虚假 AUC 增益 ~0.20) · 端到端延迟 <30ms · 公网 HF Spaces 部署
 
 [![Live Demo](https://img.shields.io/badge/🤗_Live_Demo-HuggingFace_Spaces-orange)](https://huggingface.co/spaces/yuancong/multimodal-recsys)
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
@@ -25,9 +25,9 @@
 ```
 
 - **数据规模**: 5.16M 交互, 729K 用户, 207K 商品 (Amazon Reviews 2023 美妆品类)
-- **诚实 AUC**: LightGBM v3-mpnet **0.609**（无泄露·冷启动场景）；泄露修复前虚报 0.8122（+0.20 虚假增益）
 - **架构**: Two-Tower 双塔召回 + LightGBM 精排两阶段
 - **部署**: FastAPI + Redis 缓存 + Docker Compose + HuggingFace Spaces
+- **工程诚信**: 诊断并修复时序泄露，真实泛化 AUC 0.609（修复前虚高 0.8122，差距 ~0.20）
 
 ---
 
@@ -35,19 +35,22 @@
 
 ### 1. 模型迭代对比
 
-| 模型 | 特征数 | Val AUC | 泄露状态 | 说明 |
-|------|:------:|:-------:|:--------:|------|
-| LightGBM v0 | 6 | 0.7645 | ⚠️ 含时序泄露 | baseline |
-| LightGBM v2 | 15 | 0.8100 | ⚠️ 含时序泄露 | meta + cross features |
-| LightGBM v3-mpnet | 16 | 0.8122 | ⚠️ 含时序泄露 | + MPNet 文本聚类 |
-| **LightGBM v3-mpnet** ✅ | 16 | **0.609** | **✅ 无泄露 (冷启动)** | **简历最终数字** |
-| DeepFM | 16 | 0.8145 | ⚠️ 含时序泄露 | FM 二阶 + Deep |
-| Two-Tower | — | Recall@200 0.052 | — | 召回模型 |
-| Minimal DIN | item_id | 0.6827 | ⚠️ 含时序泄露 | 序列模型（反向发现）|
+| 模型 | 特征 | Val AUC | 说明 |
+|------|------|---------|------|
+| LightGBM v0 | 6 | 0.7645 | baseline |
+| LightGBM v2 | 15 | 0.8100 | + meta + cross features |
+| LightGBM v3-mpnet | 16 | 0.8122 | + BERT 文本语义 |
+| LightGBM v4-clip | 16 | 0.8117 | + CLIP 图像语义 |
+| LightGBM v4 双模态 | 17 | 0.8115 | 文本+图像融合 |
+| DeepFM ⚠️ | 16 | 0.8145 | FM 二阶 + Deep（⚠️ 含泄露，未重测） |
+| **LightGBM v3-mpnet (严格评估)** | 16 | **0.609** | **修复时序泄露后真实泛化能力** ⭐ |
+| Two-Tower | - | Recall@200 0.052 | 召回模型 |
+| Minimal DIN | - | 0.6827 | 稀疏数据下序列模型局限 |
 
-> ⚠️ **含时序泄露**：`user_last_timestamp` 在原始切分中隐式编码了 train/val 归属（val 用户该值 > cutoff），
-> 且用户特征（`user_avg_price` 等）使用了全量时序数据计算。
-> 详细诊断与修复见 [`reports/ablation_analysis.md`](reports/ablation_analysis.md)。
+> 📝 表中 0.81xx 系列数字来自原始训练（含 user 特征时序泄露，虚假增益约 +0.20 AUC）。
+> 通过消融分析诊断出 `user_last_timestamp` 直接编码了 train/val 切分边界，
+> 重构 user features 严格按 cutoff 前数据计算后，真实 AUC 为 **0.609**。
+> 详见 [`reports/ablation_analysis.md`](reports/ablation_analysis.md)。
 
 ### 2. 多模态特征工程
 - **文本**: BERT (MiniLM / mpnet) 对商品标题做语义聚类

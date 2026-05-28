@@ -21,6 +21,8 @@ from pathlib import Path
 from typing import List, Optional
 from contextlib import asynccontextmanager
 
+from .config import FEATURE_COLS, compute_user_price_diff, compute_pop_x_activity
+
 import numpy as np
 import pandas as pd
 import lightgbm as lgb
@@ -46,14 +48,6 @@ DATA_PROC = PROJECT_ROOT / "data" / "processed"
 MODELS_DIR = PROJECT_ROOT / "models"
 RECALL_DIR = DATA_PROC / "recall"
 
-FEATURE_COLS = [
-    "user_interaction_count", "user_avg_rating", "user_last_timestamp",
-    "item_interaction_count", "item_avg_rating", "item_last_timestamp",
-    "price", "price_missing", "title_length", "n_categories",
-    "sub_category_id", "brand_id",
-    "user_avg_price", "user_price_diff", "pop_x_activity",
-    "text_cluster_id_mpnet",
-]
 
 
 class PredictRequest(BaseModel):
@@ -176,8 +170,11 @@ def build_features(user_id, asins):
             "sub_category_id": int(item_feat.get("sub_category_id", 0)),
             "brand_id": int(item_feat.get("brand_id", 0)),
             "user_avg_price": u_avg_p,
-            "user_price_diff": i_price - u_avg_p,
-            "pop_x_activity": item_feat.get("item_interaction_count", 0) * user_feat.get("user_interaction_count", 0),
+            "user_price_diff": compute_user_price_diff(i_price, u_avg_p),
+            "pop_x_activity": compute_pop_x_activity(
+                user_feat.get("user_interaction_count", 0),
+                item_feat.get("item_interaction_count", 0),
+            ),
             "text_cluster_id_mpnet": int(item_feat.get("text_cluster_id_mpnet", 0)),
         })
         valid.append(asin)

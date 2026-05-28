@@ -5,6 +5,10 @@ import numpy as np
 import pandas as pd
 import lightgbm as lgb
 
+# 共享配置: 特征列定义和交叉特征计算函数
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import FEATURE_COLS, compute_user_price_diff, compute_pop_x_activity
+
 RECALL_DIR = Path("data/processed/recall")
 DATA_PROC = Path("data/processed")
 OUT_DIR = Path("models")
@@ -101,8 +105,8 @@ for ui in range(len(val_users)):
             item_row["item_last_timestamp"],
             i_price, item_row["price_missing"], item_row["title_length"], item_row["n_categories"],
             u_avg_p,
-            abs(u_avg_p - i_price) if pd.notna(u_avg_p) and pd.notna(i_price) else 0,
-            item_row["item_interaction_count"] * u_iact,
+            compute_user_price_diff(i_price, u_avg_p),
+            compute_pop_x_activity(u_iact, item_row["item_interaction_count"]),
             item_row["sub_category_id"], item_row["brand_id"], item_row["text_cluster_id_mpnet"],
         ]
         feats.append(feat)

@@ -336,8 +336,8 @@ with st.sidebar:
     st.markdown('<div class="side-item"><b>部署</b><br>Docker Compose</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="side-label" style="margin-top:14px">项目进度</div>', unsafe_allow_html=True)
-    st.progress(0.70)
-    st.caption("70% 完成 · Day 11 / 13")
+    st.progress(1.0)
+    st.caption("100% 完成")
 
     # API 状态
     try:

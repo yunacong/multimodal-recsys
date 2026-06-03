@@ -89,6 +89,48 @@ def _build_merchant_features(
     return df, valid_asins
 
 
+# 中文品类关键词 → Amazon 商品文本中常见英文词的映射
+# Amazon BPC 数据为英文，用关键词匹配 title / main_category 字段
+_CATEGORY_KEYWORDS: dict[str, list[str]] = {
+    "护肤": ["skin", "skincare", "face", "cream", "serum", "toner", "lotion", "moisturizer"],
+    "面膜": ["mask", "facial mask", "sheet mask"],
+    "美妆": ["beauty", "makeup", "cosmetic", "foundation", "lipstick", "mascara"],
+    "彩妆": ["makeup", "cosmetic", "concealer", "blush", "eyeshadow"],
+    "洗护": ["shampoo", "hair", "conditioner", "scalp", "wash"],
+    "香水": ["perfume", "fragrance", "cologne", "scent"],
+    "保健": ["supplement", "vitamin", "health", "wellness", "capsule"],
+    "口红": ["lipstick", "lip", "lipgloss", "lip color"],
+    "防晒": ["sunscreen", "spf", "sun protection", "uv"],
+    "眼部": ["eye", "eyebrow", "eyelash", "eyeliner"],
+}
+
+
+def _match_category(feat: dict, target_category: str) -> bool:
+    """判断商品是否匹配目标品类（中文品类→英文关键词模糊匹配）。"""
+    if not target_category:
+        return True
+
+    # 拼接商品可用文本字段
+    text = " ".join([
+        str(feat.get("title", "")),
+        str(feat.get("main_category", "")),
+        str(feat.get("categories", "")),
+        str(feat.get("sub_category", "")),
+    ]).lower()
+
+    # 收集匹配关键词
+    keywords: list[str] = []
+    for zh_key, kws in _CATEGORY_KEYWORDS.items():
+        if zh_key in target_category:
+            keywords.extend(kws)
+
+    # 无法映射时不过滤（保证结果不为空）
+    if not keywords:
+        return True
+
+    return any(k in text for k in keywords)
+
+
 def _filter_candidates(
     item_features: dict,
     target_category: str,
@@ -105,7 +147,19 @@ def _filter_candidates(
         if price > 0 and not (min_p <= price <= max_p):
             continue
 
+        # 品类过滤（中文→英文关键词模糊匹配）
+        if not _match_category(feat, target_category):
+            continue
+
         filtered[asin] = feat
+
+    # 过滤后候选太少时退化为全量（保证推荐不为空）
+    if len(filtered) < 20:
+        filtered = {
+            asin: feat for asin, feat in item_features.items()
+            if not (price := feat.get("price", 0) or 0) > 0
+            or (min_p <= price <= max_p)
+        }
 
     return filtered
 

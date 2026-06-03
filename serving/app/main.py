@@ -212,7 +212,10 @@ async def model_info():
     if MODEL is None:
         raise HTTPException(503, "模型未加载")
     return {
-        "ranking_model": "LightGBM v3-mpnet (AUC 0.8122)",
+        "ranking_model": "LightGBM v3-mpnet",
+        "historical_auc_with_leakage": 0.8122,
+        "strict_auc_after_leakage_fix": 0.609,
+        "auc_note": "0.8122 为含时序泄露的历史实验结果，严格评估（修复泄露后）AUC 为 0.609",
         "recall_model": "Two-Tower (Recall@200 0.052)",
         "n_features": MODEL.num_feature(),
         "n_items": len(ITEM_FEATURES) if ITEM_FEATURES else 0,

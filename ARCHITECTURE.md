@@ -21,19 +21,22 @@
 - 多模态聚类 (2 维): text_cluster_id_mpnet, image_cluster_id
 
 ### 模块 3: 模型层 (Model Layer)
-- LightGBM v3-mpnet: 当前最佳,17 维特征,Val AUC 0.8122
-- DIN (Day 8): 用户行为序列建模,Attention 机制
-- DeepFM (Day 9): Wide & Deep 双塔
+- LightGBM v3-mpnet: 主排序模型，16 维特征
+  - 历史实验 AUC 0.8122（含时序泄露），严格评估 AUC **0.609**（修复泄露后）
+  - 详见 `reports/ablation_analysis.md`
+- Two-Tower: 双塔召回，Recall@200 = 0.052
+- DIN / DeepFM: 对比实验，见 `src/` 目录
 
 ### 模块 4: 服务层 (Serving)
-- FastAPI: 单用户实时预测 API
-- Redis cache: 热门商品/用户特征缓存
-- 异步处理: 批量预测加速
+- FastAPI: C 端 `/recommend` + B 端 `/merchant/recommend` 双接口
+- Redis cache: 推荐结果缓存，命中约 1.5ms
+- Docker Compose: 多容器编排
 
 ### 模块 5: 评估层 (Evaluation)
 - 离线指标: AUC, NDCG@10, Precision@K, Recall@K
-- 在线 A/B 框架: 流量分桶 + 指标监控
-- MLflow: 实验追踪 + 模型版本管理
+- 消融实验: 多模态特征组合对比（见 `reports/ablation_analysis.md`）
+
+> ⚠️ **未完成 / 规划中**（不在当前 Demo 范围内）：在线 A/B 测试、MLflow 实验追踪、自动重训、线上监控
 
 ---
 
@@ -60,12 +63,13 @@
 - 平衡正负样本梯度信号
 - 控制训练数据总量(24.6M,M2 本机可处理)
 
-### 决策 4: BERT mpnet 用于训练,MiniLM 用于生产
+### 决策 4: BERT mpnet 用于训练,MiniLM 用于服务
 
 理由:
-- mpnet: Val AUC 0.8122 (最佳),768 维
-- MiniLM: Val AUC 0.8116 (略低),384 维,5x 推理速度
-- 生产推荐 MiniLM(每个 batch 节省 80% 时间,质量差 0.0006 可接受)
+- mpnet: 历史实验 AUC 0.8122（含泄露），768 维，特征提取质量高
+- MiniLM: AUC 0.8116（历史，同含泄露），384 维，5x 推理速度
+- 服务端推荐 MiniLM（每个 batch 节省 80% 时间，质量差 0.0006 可接受）
+- 注：以上 AUC 数字均为含时序泄露的历史实验结果，严格评估见 `reports/ablation_analysis.md`
 
 ### 决策 5: 多模态特征按类目动态选择
 
@@ -143,11 +147,16 @@ step 4: 排序返回
 
 ## 🎯 性能指标
 
-### 离线指标(当前最佳 v3-mpnet)
-- Val AUC: 0.8122
-- NDCG@10: 0.8006
-- Precision@10: 0.1788
-- Recall@10: 0.9690
+### 离线指标（LightGBM v3-mpnet）
+
+| 指标 | 数值 | 说明 |
+|------|------|------|
+| Val AUC（历史，含泄露） | 0.8122 | 早期含时序泄露，不代表真实泛化能力 |
+| **Val AUC（严格评估）** | **0.609** | 修复时序泄露后的真实指标 ⭐ |
+| Two-Tower Recall@200 | 0.052 | 召回阶段，Amazon BPC 5-core |
+
+> 时序泄露来源：`user_last_timestamp` 直接编码了 train/val 切分边界。
+> 修复方法：重构用户特征，严格按 cutoff 前数据计算。详见 `reports/ablation_analysis.md`。
 
 ### 训练性能
 - LightGBM v3 训练: 14-16 分钟 (M2 本机, 8 线程)

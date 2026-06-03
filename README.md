@@ -3,8 +3,7 @@
 > 面向内容电商商家的多模态选品推荐引擎，基于 Amazon Reviews 2023 BPC 数据集（5.16M 交互）
 > Two-Tower 双塔召回 + LightGBM 排序 · 商品评论洞察 · FastAPI + Redis + Docker 部署
 >
-> **核心亮点**: 多模态消融实验对比 4 组特征组合 · 诊断并修复时序数据泄露 · B 端选品推荐 API
-> (虚假 AUC 增益 ~0.20) · 端到端延迟 <30ms · 公网 HF Spaces 部署
+> **核心亮点**: 多模态消融实验对比 4 组特征组合 · 诊断并修复时序数据泄露（真实 AUC 0.609）· B 端选品推荐 API
 
 [![Live Demo](https://img.shields.io/badge/🤗_Live_Demo-HuggingFace_Spaces-orange)](https://huggingface.co/spaces/yuancong/multimodal-recsys)
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
@@ -18,7 +17,7 @@
 
 ## 📌 项目概览
 
-一个完整的工业级推荐系统,从原始数据处理到在线服务部署,覆盖推荐系统的全链路:
+参考工业推荐系统链路设计，从原始数据处理到在线服务部署，覆盖推荐系统全链路：
 
 ```
 数据处理 → 特征工程 → 多模态embedding → 模型训练 → 召回 → 排序 → 在线服务 → 可交互Demo
@@ -60,13 +59,13 @@
 ### 3. 两阶段推荐架构
 - **召回**: Two-Tower 双塔模型, in-batch negatives, ANN 检索 top-200 (1.86ms)
 - **排序**: LightGBM v3-mpnet 对候选精排, 输出 top-K
-- **端到端延迟**: < 30ms
+- **推理延迟**: 单请求缓存命中场景约 1.5ms，冷请求完整链路约 30–80ms（本地测试，见 serving/PERFORMANCE_REPORT.md）
 
-### 4. 生产级部署
-- **FastAPI**: REST API, /recommend 端点
-- **Redis 缓存**: 命中延迟 1.5ms (314x 加速)
-- **Docker Compose**: 多容器编排, volume 挂载模型
-- **HuggingFace Spaces**: 公网可访问的交互 demo
+### 4. 服务化部署
+- **FastAPI**: REST API，支持 C 端 `/recommend` 和 B 端 `/merchant/recommend` 双接口
+- **Redis 缓存**: 命中延迟约 1.5ms（单机测试）
+- **Docker Compose**: 多容器编排，volume 挂载模型
+- **HuggingFace Spaces**: 公网可交互 Demo
 
 ---
 

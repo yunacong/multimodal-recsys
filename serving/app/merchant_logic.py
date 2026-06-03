@@ -135,33 +135,51 @@ def _filter_candidates(
     item_features: dict,
     target_category: str,
     price_range: list[float],
-) -> dict:
-    """按品类和价格过滤候选商品池。"""
-    filtered = {}
+    min_candidates: int = 20,
+) -> tuple[dict, str, str]:
+    """
+    分级过滤候选商品池，返回 (candidates, filter_mode, filter_note)。
+
+    过滤优先级（严格→宽松，逐级降级）：
+      strict:        品类 + 价格 同时满足
+      category_only: 仅品类匹配（放开价格约束）
+      price_only:    仅价格匹配（放开品类约束）
+      all_fallback:  全量（两个约束均无法满足时）
+    """
     min_p, max_p = price_range[0], price_range[1]
+    has_category = bool(target_category)
+    has_price = not (min_p == 0 and max_p >= 9999)
 
-    for asin, feat in item_features.items():
+    def _pass_price(feat: dict) -> bool:
         price = feat.get("price", 0) or 0
+        return price == 0 or (min_p <= price <= max_p)
 
-        # 价格过滤（price=0 视为缺失，保留）
-        if price > 0 and not (min_p <= price <= max_p):
-            continue
+    def _pass_category(feat: dict) -> bool:
+        return _match_category(feat, target_category)
 
-        # 品类过滤（中文→英文关键词模糊匹配）
-        if not _match_category(feat, target_category):
-            continue
+    # Level 1: 严格（品类 + 价格）
+    strict = {a: f for a, f in item_features.items()
+              if _pass_price(f) and _pass_category(f)}
+    if len(strict) >= min_candidates:
+        return strict, "strict", ""
 
-        filtered[asin] = feat
+    # Level 2: 仅品类
+    if has_category:
+        cat_only = {a: f for a, f in item_features.items() if _pass_category(f)}
+        if len(cat_only) >= min_candidates:
+            note = f"候选品类匹配 {len(strict)} 个不足{min_candidates}个，已放开价格约束"
+            return cat_only, "category_only", note
 
-    # 过滤后候选太少时退化为全量（保证推荐不为空）
-    if len(filtered) < 20:
-        filtered = {
-            asin: feat for asin, feat in item_features.items()
-            if not (price := feat.get("price", 0) or 0) > 0
-            or (min_p <= price <= max_p)
-        }
+    # Level 3: 仅价格
+    if has_price:
+        price_only = {a: f for a, f in item_features.items() if _pass_price(f)}
+        if len(price_only) >= min_candidates:
+            note = f"品类+价格候选不足，已放开品类约束，仅保留价格区间 [{min_p}, {max_p}]"
+            return price_only, "price_only", note
 
-    return filtered
+    # Level 4: 全量兜底
+    note = "品类和价格约束均无法满足最小候选数，已退化为全量推荐"
+    return item_features, "all_fallback", note
 
 
 def _get_review_insight(sku_id: str, llm_api_key: str = "") -> Optional["ReviewInsight"]:
@@ -247,16 +265,13 @@ def run_merchant_recommend(
     """
     t0 = time.time()
 
-    # Step 1: 候选过滤
-    candidates = _filter_candidates(
+    # Step 1: 分级候选过滤（严格→品类→价格→全量，每级自动记录 filter_mode）
+    candidates, filter_mode, filter_note = _filter_candidates(
         item_features,
         request.target_category,
         request.price_range,
+        min_candidates=max(request.top_k * 2, 20),
     )
-
-    # 候选太少时退化为全量（保证推荐结果不为空）
-    if len(candidates) < request.top_k * 2:
-        candidates = item_features
 
     # Step 2: 构造特征矩阵
     X, valid_asins = _build_merchant_features(
@@ -271,6 +286,8 @@ def run_merchant_recommend(
             recommended_skus=[],
             total_candidates=0,
             inference_time_ms=round((time.time() - t0) * 1000, 2),
+            filter_mode="all_fallback",
+            filter_note="特征矩阵为空，无法推荐",
         )
 
     # Step 3: LightGBM 打分 + 排序
@@ -322,4 +339,6 @@ def run_merchant_recommend(
         recommended_skus=skus,
         total_candidates=len(candidates),
         inference_time_ms=round((time.time() - t0) * 1000, 2),
+        filter_mode=filter_mode,
+        filter_note=filter_note,
     )

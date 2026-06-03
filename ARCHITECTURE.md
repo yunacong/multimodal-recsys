@@ -170,19 +170,25 @@ step 4: 排序返回
 
 ---
 
-## 🚀 未来扩展
+## ✅ 已完成功能
 
-### 短期 (Week 2-3)
-- DIN 实现 (序列建模)
-- DeepFM 实现 (高阶交叉)
-- 模型 ensemble
+| 模块 | 说明 |
+|------|------|
+| 数据处理与负采样 | 5.16M 交互，1:5 负采样，1222x 向量化加速 |
+| LightGBM 排序实验 | v0→v3-mpnet 迭代，多模态消融，时序泄露诊断修复 |
+| Two-Tower 双塔召回 | in-batch negatives，ANN 检索，Recall@200=0.052 |
+| DIN 序列模型 | 对比实验，Val AUC 0.6827，稀疏数据局限性验证 |
+| DeepFM | 对比实验，见 src/deepfm/ |
+| FastAPI 在线服务 | C 端 /recommend + B 端 /merchant/recommend |
+| Redis 缓存 | 命中延迟约 1.5ms |
+| Docker Compose | 多容器编排 |
+| 商品评论洞察 | SBERT 聚类 + LLM 总结卖点/痛点/内容角度 |
+| 时序泄露复盘 | 诊断 user_last_timestamp 泄露，严格评估 AUC 0.609 |
 
-### 中期 (Week 4-5)
-- 召回阶段 (双塔模型 + ANN 检索)
-- 排序 + 重排
-- 多目标优化
+## 🗓️ 规划中（未完成）
 
-### 长期 (Week 6-8)
-- 在线 A/B 测试
-- 模型监控 + 自动重训
-- 完整 ML Ops pipeline
+- 在线 A/B 测试框架
+- MLflow 实验追踪与模型版本管理
+- 自动重训 pipeline
+- 线上监控与告警
+- 移除时序敏感特征后重训严格版模型（当前服务使用历史 v3-mpnet 展示工程链路）

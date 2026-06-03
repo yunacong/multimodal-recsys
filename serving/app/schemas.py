@@ -33,3 +33,5 @@ class MerchantRecommendResponse(BaseModel):
     recommended_skus: list[RecommendedSKU]
     total_candidates: int
     inference_time_ms: float
+    filter_mode: str = "strict"          # strict | category_only | price_only | all_fallback
+    filter_note: str = ""                # 说明为何触发兜底

@@ -1,9 +1,9 @@
-# 🛍️ 多模态商品推荐系统 (Multimodal Recommender System)
+# 多模态商品选品推荐系统 | Two-Tower · LightGBM · BERT · FastAPI
 
-> 工业级端到端推荐 pipeline · 基于 Amazon Reviews 2023 BPC 数据集 (5.16M 交互)
-> Two-Tower 双塔召回 + LightGBM 排序 · FastAPI + Redis + Docker 部署
+> 面向内容电商商家的多模态选品推荐引擎，基于 Amazon Reviews 2023 BPC 数据集（5.16M 交互）
+> Two-Tower 双塔召回 + LightGBM 排序 · 商品评论洞察 · FastAPI + Redis + Docker 部署
 >
-> **核心亮点**: 多模态消融实验对比 4 组特征组合 · 诊断并修复时序数据泄露
+> **核心亮点**: 多模态消融实验对比 4 组特征组合 · 诊断并修复时序数据泄露 · B 端选品推荐 API
 > (虚假 AUC 增益 ~0.20) · 端到端延迟 <30ms · 公网 HF Spaces 部署
 
 [![Live Demo](https://img.shields.io/badge/🤗_Live_Demo-HuggingFace_Spaces-orange)](https://huggingface.co/spaces/yuancong/multimodal-recsys)

@@ -7,10 +7,12 @@ FastAPI + Two-Tower 召回 + LightGBM v3-mpnet 排序
     KMP_DUPLICATE_LIB_OK=TRUE uvicorn app.main:app --port 8000
 
 端点:
-    GET  /              健康检查
-    GET  /model_info    模型信息
-    POST /predict       排序 (给定 item_ids 打分) - 兼容 v1
-    POST /recommend     召回+排序 (只给 user_id, 自动召回 top-200 再排序) - v2 新增
+    GET  /                        健康检查
+    GET  /model_info              模型信息
+    POST /predict                 排序 (给定 item_ids 打分) - 兼容 v1
+    POST /recommend               召回+排序 (只给 user_id, 自动召回 top-200 再排序) - v2 新增
+    POST /merchant/recommend      B端商家选品推荐 (按经营目标排序) - v3 新增
+    GET  /merchant/goals          查询支持的经营目标和问题类型
 """
 
 import os
@@ -29,6 +31,8 @@ import lightgbm as lgb
 import redis
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from .schemas import MerchantRecommendRequest, MerchantRecommendResponse
+from .merchant_logic import run_merchant_recommend, GOAL_WEIGHTS, PROBLEM_TO_CONTENT_ANGLE
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
@@ -129,8 +133,17 @@ async def lifespan(app: FastAPI):
         REDIS = None
         logger.warning(f"⚠️ Redis 未连接 ({e}), 降级为无缓存模式")
 
+    # 7. 预计算商家推荐用的用户特征均值（替代废弃的 on_event startup）
+    global _MERCHANT_USER_DEFAULTS
+    if USER_FEATURES:
+        import statistics
+        sample = list(USER_FEATURES.values())[:5000]
+        keys = ("user_interaction_count", "user_avg_rating", "user_last_timestamp", "user_avg_price")
+        _MERCHANT_USER_DEFAULTS = {k: statistics.mean(v.get(k, 0) for v in sample) for k in keys}
+        logger.info(f"✅ 商家推荐用户默认特征计算完成")
+
     logger.info("=" * 60)
-    logger.info("🚀 v2.0 就绪! http://localhost:8000/docs")
+    logger.info("🚀 v3.0 就绪! http://localhost:8000/docs")
     logger.info("=" * 60)
     yield
     logger.info("应用关闭")
@@ -293,3 +306,67 @@ async def recommend(request: RecommendRequest):
         except Exception:
             pass
     return result
+
+
+# ---------------------------------------------------------------------------
+# v3: B端商家选品推荐
+# ---------------------------------------------------------------------------
+
+# 商家"虚拟用户"特征（使用全量用户均值代替具体 user_id）
+_MERCHANT_USER_DEFAULTS: dict = {}
+
+
+@app.post("/merchant/recommend", response_model=MerchantRecommendResponse,
+          summary="B端商家选品推荐",
+          description="根据商家经营目标和当前经营问题，从商品池中召回并排序高潜力 SKU。")
+async def merchant_recommend(request: MerchantRecommendRequest):
+    if MODEL is None or ITEM_FEATURES is None:
+        raise HTTPException(503, "模型未加载")
+
+    from .config import FEATURE_COLS as _FEATURE_COLS
+    result = run_merchant_recommend(
+        request=request,
+        model=MODEL,
+        item_features=ITEM_FEATURES,
+        feature_cols=_FEATURE_COLS,
+        user_feat_defaults=_MERCHANT_USER_DEFAULTS or {},
+    )
+    return result
+
+
+@app.get("/merchant/goals", summary="查询支持的经营目标和问题类型")
+async def merchant_goals():
+    return {
+        "business_goals": list(GOAL_WEIGHTS.keys()),
+        "problem_types": list(PROBLEM_TO_CONTENT_ANGLE.keys()),
+    }
+
+
+class ProductInsightRequest(BaseModel):
+    sku_id: str = Field(..., example="SKU_023")
+    n_reviews: int = Field(10, ge=1, le=50)
+    use_llm: bool = Field(True)
+
+
+@app.post("/merchant/product_insight", summary="商品评论洞察",
+          description="对单个 SKU 进行评论洞察，提取卖点、痛点、内容角度和转化风险。")
+async def product_insight(request: ProductInsightRequest):
+    try:
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+        from product_intelligence.review_analyzer import analyze_reviews, insight_to_dict
+        from product_intelligence.mock_reviews import get_reviews_for_sku
+
+        reviews = get_reviews_for_sku(request.sku_id, n=request.n_reviews)
+        llm_key = os.environ.get("DEEPSEEK_API_KEY", "")
+        insight = analyze_reviews(
+            sku_id=request.sku_id,
+            reviews=reviews,
+            use_embedding=False,
+            use_llm=request.use_llm and bool(llm_key),
+            llm_api_key=llm_key,
+        )
+        return insight_to_dict(insight)
+    except ImportError:
+        raise HTTPException(501, "评论洞察模块未安装，请确认 product_intelligence 目录存在")
